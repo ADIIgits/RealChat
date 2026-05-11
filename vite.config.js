@@ -1,18 +1,14 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
-import { bunny } from 'laravel-vite-plugin/fonts';
 import tailwindcss from '@tailwindcss/vite';
+
+const replitDomain = process.env.REPLIT_DEV_DOMAIN || 'localhost';
 
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            input: ['resources/css/app.css', 'resources/js/app.js', 'resources/js/echo.js'],
             refresh: true,
-            fonts: [
-                bunny('Instrument Sans', {
-                    weights: [400, 500, 600],
-                }),
-            ],
         }),
         tailwindcss(),
     ],
@@ -22,11 +18,12 @@ export default defineConfig({
         strictPort: true,
         allowedHosts: true,
         hmr: {
+            host: replitDomain,
             clientPort: 443,
             protocol: 'wss',
         },
         watch: {
-            ignored: ['**/storage/framework/views/**'],
+            ignored: ['**/storage/framework/views/**', '**/vendor/**', '**/node_modules/**'],
         },
     },
 });

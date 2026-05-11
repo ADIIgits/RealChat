@@ -1,0 +1,102 @@
+Build a real-time team chat application using Laravel as the primary framework. This is a college final project, so prioritize clean architecture, Laravel-native solutions, simplicity, maintainability, and smooth deployment over overengineering.
+
+Tech stack requirements:
+
+Backend:
+
+* Laravel latest stable version
+* Laravel Reverb for realtime websocket communication
+* MySQL database
+* Laravel Breeze authentication
+* Laravel Echo for realtime frontend updates
+
+Frontend:
+
+* Prefer Blade + Tailwind CSS + Alpine.js if easier and more stable in Replit
+* If React + Inertia is significantly easier with Replit environment, use that instead
+* Avoid unnecessary frontend complexity
+
+Realtime Features:
+
+* Real-time messaging in channels
+* Multiple users chatting simultaneously
+* Typing indicator
+* Online/offline user status
+* Channel creation and joining
+* Instant message updates without refresh
+
+File Sharing:
+
+* Use Cloudinary for image/file uploads
+* Keep upload flow simple:
+
+  * frontend uploads directly to Cloudinary
+  * backend only stores returned file URL and metadata
+* Avoid complicated local upload pipelines or unnecessary backend upload handling unless absolutely needed
+
+Database Structure:
+Keep schema simple and practical.
+
+Required tables:
+
+* users
+* channels
+* channel_members
+* messages
+* attachments
+
+Message table should support:
+
+* text messages
+* optional attachment URL
+* sender
+* channel
+* timestamps
+
+UI Requirements:
+
+* Modern clean team-chat UI inspired by Slack/Discord
+* Sidebar for channels
+* Main chat window
+* Responsive layout
+* Dark mode preferred if easy
+* Auto-scroll latest messages
+* Real-time updates using Reverb
+
+Project Structure Constraints:
+
+* Do NOT heavily restructure Laravel default folders
+* Avoid unnecessary custom architecture
+* Avoid excessive abstraction
+* Only create additional folders if they genuinely improve organization and declutter code
+* Keep the project beginner-friendly and understandable for academic evaluation
+
+Code Quality:
+
+* Use Laravel best practices
+* Use Eloquent relationships properly
+* Keep controllers reasonably clean
+* Use validation
+* Use events/broadcasting correctly
+* Comment important realtime logic
+
+Deployment:
+
+* Keep deployment Railway-friendly
+* Environment setup should be minimal
+* Avoid Docker unless absolutely required
+* Ensure MySQL + Reverb configuration works smoothly in deployment
+
+Additional Features (only if easy after core completion):
+
+* unread message count
+* message reactions
+* message search
+* notifications
+* profile avatars
+
+Important:
+First focus on getting a stable MVP working end-to-end:
+authentication → channels → realtime messaging → file sharing.
+
+After that, improve UI/features incrementally.

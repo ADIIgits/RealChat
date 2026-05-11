@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e
 
+# Kill any processes still using our ports from a previous run
+fuser -k 8080/tcp 2>/dev/null || true
+fuser -k 5000/tcp 2>/dev/null || true
+fuser -k 4000/tcp 2>/dev/null || true
+sleep 1
+
 # Initialize MySQL data dir if first run
 if [ ! -d "/home/runner/.mysql/data/mysql" ]; then
   mkdir -p /home/runner/.mysql/data /home/runner/.mysql/run /home/runner/.mysql/logs

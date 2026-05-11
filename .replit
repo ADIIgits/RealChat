@@ -1,0 +1,50 @@
+modules = ["php-8.2", "nodejs-20", "web", "php-8.4"]
+[agent]
+expertMode = true
+stack = "BEST_EFFORT_FALLBACK"
+
+[nix]
+channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+APP_URL = "http://0.0.0.0:5000"
+VITE_APP_NAME = "Laravel"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Start application"
+
+[[workflows.workflow]]
+name = "Start application"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npx concurrently -c \"#93c5fd,#c4b5fd\" \"php artisan serve --host=0.0.0.0 --port=5000\" \"npm run dev\" --names=server,vite --kill-others"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 5173
+externalPort = 5173
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["php", "artisan", "serve", "--host=0.0.0.0", "--port=5000"]
+build = ["bash", "-c", "composer install --no-dev --optimize-autoloader && npm run build && php artisan config:cache && php artisan route:cache && php artisan view:cache"]

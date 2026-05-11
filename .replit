@@ -25,10 +25,13 @@ SESSION_DRIVER = "file"
 QUEUE_CONNECTION = "sync"
 CACHE_STORE = "file"
 DB_SOCKET = "/home/runner/.mysql/run/mysql.sock"
-VITE_REVERB_APP_KEY = "${REVERB_APP_KEY}"
+VITE_REVERB_APP_KEY = "6662c0dc7d724d9574be613cb61ee28c"
 VITE_REVERB_HOST = "${REVERB_HOST}"
 VITE_REVERB_PORT = "${REVERB_PORT}"
 VITE_REVERB_SCHEME = "${REVERB_SCHEME}"
+REVERB_APP_KEY = "6662c0dc7d724d9574be613cb61ee28c"
+REVERB_APP_SECRET = "62ba07808da587ba9b8772c0bd87cccdc44b5b82"
+REVERB_APP_ID = "195797"
 
 [workflows]
 runButton = "Project"
@@ -71,6 +74,6 @@ localPort = 8080
 externalPort = 8080
 
 [deployment]
-deploymentTarget = "autoscale"
-run = ["php", "artisan", "serve", "--host=0.0.0.0", "--port=5000"]
+deploymentTarget = "vm"
+run = ["bash", "start.sh"]
 build = ["bash", "-c", "composer install --no-dev --optimize-autoloader && npm run build && php artisan config:cache && php artisan route:cache && php artisan view:cache"]

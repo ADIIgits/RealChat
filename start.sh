@@ -9,8 +9,14 @@ fi
 
 mkdir -p /home/runner/.mysql/run /home/runner/.mysql/logs
 
+# Kill any stale socket/lock files from crashed instances
+if [ -S /home/runner/.mysql/run/mysql.sock ] && ! mysqladmin --socket=/home/runner/.mysql/run/mysql.sock -u root ping --silent 2>/dev/null; then
+  echo "Removing stale MySQL socket..."
+  rm -f /home/runner/.mysql/run/mysql.sock /home/runner/.mysql/run/mysql.sock.lock /home/runner/.mysql/run/mysql.pid
+fi
+
 # Start MySQL if not already running
-if ! mysqladmin --socket=/home/runner/.mysql/run/mysql.sock ping --silent 2>/dev/null; then
+if ! mysqladmin --socket=/home/runner/.mysql/run/mysql.sock -u root ping --silent 2>/dev/null; then
   echo "Starting MySQL..."
   rm -f /home/runner/.mysql/run/mysql.pid
   mysqld --user=runner \
@@ -20,8 +26,8 @@ if ! mysqladmin --socket=/home/runner/.mysql/run/mysql.sock ping --silent 2>/dev
     --log-error=/home/runner/.mysql/logs/error.log \
     --mysqlx=OFF \
     --daemonize
-  for i in $(seq 1 20); do
-    if mysqladmin --socket=/home/runner/.mysql/run/mysql.sock ping --silent 2>/dev/null; then
+  for i in $(seq 1 30); do
+    if mysqladmin --socket=/home/runner/.mysql/run/mysql.sock -u root ping --silent 2>/dev/null; then
       echo "MySQL ready!"
       break
     fi
@@ -32,7 +38,7 @@ fi
 # Create DB and user (idempotent)
 mysql --socket=/home/runner/.mysql/run/mysql.sock -u root \
   -e "CREATE DATABASE IF NOT EXISTS laravel_chat;
-      CREATE USER IF NOT EXISTS 'laravel'@'localhost' IDENTIFIED BY 'secret';
+      CREATE USER IF NOT EXISTS 'laravel'@'localhost' IDENTIFIED WITH mysql_native_password BY 'secret';
       GRANT ALL ON laravel_chat.* TO 'laravel'@'localhost';
       FLUSH PRIVILEGES;" 2>/dev/null || true
 

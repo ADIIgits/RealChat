@@ -34,16 +34,23 @@ RUN composer install --no-dev --optimize-autoloader
 RUN npm install
 
 # Build frontend assets
+# Build frontend assets
 RUN npm run build
 
-# Laravel cache optimizations
-RUN php artisan config:clear || true
-RUN php artisan config:cache || true
-RUN php artisan route:cache || true
-RUN php artisan view:cache || true
-
-# Expose Render port
 EXPOSE 10000
 
-# Start Laravel
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000
+CMD php artisan optimize:clear && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000
+
+# RUN npm run build
+
+# # Laravel cache optimizations
+# RUN php artisan config:clear || true
+# RUN php artisan config:cache || true
+# RUN php artisan route:cache || true
+# RUN php artisan view:cache || true
+
+# # Expose Render port
+# EXPOSE 10000
+
+# # Start Laravel
+# CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000

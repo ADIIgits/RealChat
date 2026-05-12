@@ -7,49 +7,21 @@ fuser -k 5000/tcp 2>/dev/null || true
 fuser -k 4000/tcp 2>/dev/null || true
 sleep 1
 
-# Initialize MySQL data dir if first run
-if [ ! -d "/home/runner/.mysql/data/mysql" ]; then
-  mkdir -p /home/runner/.mysql/data /home/runner/.mysql/run /home/runner/.mysql/logs
-  mysqld --initialize-insecure --user=runner --datadir=/home/runner/.mysql/data 2>&1
-fi
+# Patch .env with Neon PostgreSQL settings so Laravel web server uses correct DB
+# (Laravel's built-in server reads .env directly; Replit shared env vars take effect for CLI but not always web context)
+sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=pgsql|" .env
+sed -i "s|^DB_HOST=.*|DB_HOST=ep-green-wind-aqsdh49q-pooler.c-8.us-east-1.aws.neon.tech|" .env
+sed -i "s|^DB_PORT=.*|DB_PORT=5432|" .env
+sed -i "s|^DB_DATABASE=.*|DB_DATABASE=neondb|" .env
+sed -i "s|^DB_USERNAME=.*|DB_USERNAME=neondb_owner|" .env
+sed -i "s|^DB_PASSWORD=.*|DB_PASSWORD=npg_8CGlodg1TakR|" .env
+sed -i "s|^DB_SSLMODE=.*|DB_SSLMODE=require|" .env
+# Remove legacy MySQL socket line if present
+sed -i '/^DB_SOCKET=/d' .env
+echo "DB patched to Neon PostgreSQL"
 
-mkdir -p /home/runner/.mysql/run /home/runner/.mysql/logs
-
-# Kill any stale socket/lock files from crashed instances
-if [ -S /home/runner/.mysql/run/mysql.sock ] && ! mysqladmin --socket=/home/runner/.mysql/run/mysql.sock -u root ping --silent 2>/dev/null; then
-  echo "Removing stale MySQL socket..."
-  rm -f /home/runner/.mysql/run/mysql.sock /home/runner/.mysql/run/mysql.sock.lock /home/runner/.mysql/run/mysql.pid
-fi
-
-# Start MySQL if not already running
-if ! mysqladmin --socket=/home/runner/.mysql/run/mysql.sock -u root ping --silent 2>/dev/null; then
-  echo "Starting MySQL..."
-  rm -f /home/runner/.mysql/run/mysql.pid
-  mysqld --user=runner \
-    --datadir=/home/runner/.mysql/data \
-    --socket=/home/runner/.mysql/run/mysql.sock \
-    --pid-file=/home/runner/.mysql/run/mysql.pid \
-    --log-error=/home/runner/.mysql/logs/error.log \
-    --mysqlx=OFF \
-    --daemonize
-  for i in $(seq 1 30); do
-    if mysqladmin --socket=/home/runner/.mysql/run/mysql.sock -u root ping --silent 2>/dev/null; then
-      echo "MySQL ready!"
-      break
-    fi
-    sleep 1
-  done
-fi
-
-# Create DB and user (idempotent)
-mysql --socket=/home/runner/.mysql/run/mysql.sock -u root \
-  -e "CREATE DATABASE IF NOT EXISTS laravel_chat;
-      CREATE USER IF NOT EXISTS 'laravel'@'localhost' IDENTIFIED WITH mysql_native_password BY 'secret';
-      GRANT ALL ON laravel_chat.* TO 'laravel'@'localhost';
-      FLUSH PRIVILEGES;" 2>/dev/null || true
-
-# Run migrations; if they fail due to stale tables, do a fresh run
-php artisan migrate --force 2>&1 || php artisan migrate:fresh --force 2>&1
+# Run migrations against Neon PostgreSQL (no local DB setup needed)
+php artisan migrate --force 2>&1
 
 # Seed if no users exist
 php artisan tinker --execute="if(App\Models\User::count()===0){Artisan::call('db:seed');echo 'Seeded';} else{echo 'Already seeded';}" 2>&1
@@ -61,7 +33,7 @@ php artisan view:clear 2>&1
 php artisan reverb:start --host=0.0.0.0 --port=8080 &
 echo "Reverb started (PID $!)"
 
-# Build frontend assets (avoids CORS issues in Replit proxy environment)
+# Build frontend assets
 echo "Building frontend assets..."
 npm run build 2>&1
 
@@ -70,5 +42,4 @@ php artisan serve --host=127.0.0.1 --port=4000 &
 echo "Laravel started (PID $!)"
 
 # Start Node.js reverse proxy on port 5000 (public Replit port)
-# Routes /app/* WebSocket to Reverb, HTTP to Laravel
 exec node proxy.cjs

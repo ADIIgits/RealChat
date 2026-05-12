@@ -16,7 +16,7 @@
             forceTLS: (window.location.protocol === 'https:'),
         };
     </script>
-    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/echo.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="h-full bg-gray-900 text-gray-100 antialiased">
     @isset($header)

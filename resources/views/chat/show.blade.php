@@ -228,7 +228,9 @@
                     </svg>
                 </button>
             </form>
-            <p class="text-xs text-gray-500 mt-1 px-1">Press Enter to send, Shift+Enter for new line</p>
+            <p x-show="sendError" x-text="sendError"
+               class="text-xs text-red-400 mt-1 px-1" x-cloak></p>
+            <p x-show="!sendError" class="text-xs text-gray-500 mt-1 px-1">Press Enter to send, Shift+Enter for new line</p>
         </div>
     </div>
 </div>
@@ -287,6 +289,8 @@
                 return 'Several people are typing…';
             },
 
+            sendError: null,
+
             init() {
                 this.scrollToBottom();
                 this.listenToChannel();
@@ -305,6 +309,10 @@
             },
 
             listenToChannel() {
+                if (!window.Echo) {
+                    setTimeout(() => this.listenToChannel(), 200);
+                    return;
+                }
                 // Presence channel — tracks who is online
                 window.Echo.join('channel.' + this.channelId)
                     .here((users) => { this.onlineUsers = users; })
@@ -339,14 +347,18 @@
                 if (!this.body.trim() && !this.attachmentUrl) return;
 
                 this.sending = true;
+                this.sendError = null;
                 this.stopTyping();
 
                 try {
+                    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                    if (!csrfMeta) throw new Error('CSRF token meta tag missing — try refreshing the page.');
+
                     const res = await fetch('/channels/' + this.channelId + '/messages', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            'X-CSRF-TOKEN': csrfMeta.content,
                             'Accept': 'application/json',
                         },
                         body: JSON.stringify({
@@ -357,20 +369,31 @@
                         }),
                     });
 
-                    const data = await res.json();
-                    if (res.ok) {
-                        // Add own message immediately (others get it via broadcast)
-                        const msg = data.message;
-                        msg.user.avatar = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(msg.user.name) + '&background=6366f1&color=fff';
-                        this.realtimeMessages.push(msg);
-                        this.body = '';
-                        this.clearAttachment();
-                        this.$nextTick(() => {
-                            const ta = this.$el.querySelector('textarea');
-                            if (ta) ta.style.height = 'auto';
-                        });
-                        this.scrollToBottom();
+                    if (res.status === 419) {
+                        this.sendError = 'Session expired — please refresh the page and try again.';
+                        return;
                     }
+
+                    if (!res.ok) {
+                        const errData = await res.json().catch(() => ({}));
+                        this.sendError = errData.message || ('Server error (' + res.status + ') — please try again.');
+                        return;
+                    }
+
+                    const data = await res.json();
+                    // Add own message immediately (others get it via broadcast)
+                    const msg = data.message;
+                    msg.user.avatar = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(msg.user.name) + '&background=6366f1&color=fff';
+                    this.realtimeMessages.push(msg);
+                    this.body = '';
+                    this.clearAttachment();
+                    this.$nextTick(() => {
+                        const ta = this.$el.querySelector('textarea');
+                        if (ta) ta.style.height = 'auto';
+                    });
+                    this.scrollToBottom();
+                } catch (err) {
+                    this.sendError = err.message || 'Failed to send message — please try again.';
                 } finally {
                     this.sending = false;
                 }

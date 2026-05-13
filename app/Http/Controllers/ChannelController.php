@@ -25,22 +25,21 @@ class ChannelController extends Controller
     {
         $user = Auth::user();
 
-        // Auto-join if not a member
-        if (!$channel->members()->where('user_id', $user->id)->exists()) {
-            $channel->members()->attach($user->id);
-        }
+        // Auto-join AND mark as read in one upsert query (replaces 3 separate queries)
+        $channel->members()->syncWithoutDetaching([
+            $user->id => ['last_read_at' => now()],
+        ]);
 
-        // Mark messages as read
-        $channel->members()->updateExistingPivot($user->id, ['last_read_at' => now()]);
+        // Mark user as online
+        cache()->put("user-online-{$user->id}", true, now()->addMinutes(5));
+
+        // Load channel members once, reuse for online users (no extra query)
+        $channelMembers = $channel->members()->get();
+        $onlineUsers    = $channelMembers->filter(fn($m) => cache()->has("user-online-{$m->id}"));
 
         $messages   = $channel->messages()->with('user')->orderBy('created_at')->get();
         $myChannels = $user->channels()->withCount('members')->get();
         $channels   = Channel::withCount('members')->get();
-
-        // Online users: all channel members with recent cache activity
-        $onlineUsers = $channel->members()->get()->filter(function ($member) {
-            return cache()->has("user-online-{$member->id}");
-        });
 
         return view('chat.show', compact('channel', 'messages', 'myChannels', 'channels', 'onlineUsers'));
     }

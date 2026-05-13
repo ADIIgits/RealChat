@@ -1,6 +1,6 @@
 <x-app-layout>
 <div class="flex h-screen"
-     x-data="chatApp({{ $channel->id }}, {{ auth()->id() }})"
+     x-data="chatApp({{ $channel->id }}, {{ auth()->id() }}, '{{ addslashes(auth()->user()->name) }}')"
      x-init="init()">
 
     {{-- Sidebar --}}
@@ -268,10 +268,11 @@
     // Cloudinary upload widget — loaded lazily
     let cloudinaryWidget = null;
 
-    function chatApp(channelId, userId) {
+    function chatApp(channelId, userId, userName) {
         return {
             channelId,
             userId,
+            userName,
             body: '',
             sending: false,
             realtimeMessages: [],
@@ -282,14 +283,13 @@
             attachmentType: null,
             attachmentName: null,
             attachmentPreview: null,
+            sendError: null,
 
             get typingText() {
                 if (this.typingUsers.length === 1) return this.typingUsers[0] + ' is typing…';
                 if (this.typingUsers.length === 2) return this.typingUsers.join(' and ') + ' are typing…';
                 return 'Several people are typing…';
             },
-
-            sendError: null,
 
             init() {
                 this.scrollToBottom();
@@ -313,7 +313,6 @@
                     setTimeout(() => this.listenToChannel(), 200);
                     return;
                 }
-                // Presence channel — tracks who is online
                 window.Echo.join('channel.' + this.channelId)
                     .here((users) => { this.onlineUsers = users; })
                     .joining((user) => {
@@ -324,12 +323,13 @@
                     .leaving((user) => {
                         this.onlineUsers = this.onlineUsers.filter(u => u.id !== user.id);
                     })
-                    // New message event
                     .listen('MessageSent', (e) => {
+                        // Ignore if we already added this message optimistically (same user)
+                        if (e.user_id === this.userId) return;
+                        e.user.avatar = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(e.user.name) + '&background=6366f1&color=fff';
                         this.realtimeMessages.push(e);
                         this.scrollToBottom();
                     })
-                    // Typing indicator
                     .listen('UserTyping', (e) => {
                         if (e.user_id === this.userId) return;
                         if (e.is_typing) {
@@ -344,55 +344,99 @@
 
             async sendMessage() {
                 if (this.sending) return;
-                if (!this.body.trim() && !this.attachmentUrl) return;
+                const bodyText = this.body.trim();
+                if (!bodyText && !this.attachmentUrl) return;
 
-                this.sending = true;
+                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                if (!csrfMeta) {
+                    this.sendError = 'CSRF token missing — please refresh the page.';
+                    return;
+                }
+
+                // ── Optimistic update: show message instantly ──────────────
+                const tempId  = 'temp-' + Date.now();
+                const tempMsg = {
+                    id:              tempId,
+                    body:            bodyText || null,
+                    attachment_url:  this.attachmentUrl,
+                    attachment_type: this.attachmentType,
+                    attachment_name: this.attachmentName,
+                    created_at:      new Date().toISOString(),
+                    user: {
+                        id:     this.userId,
+                        name:   this.userName,
+                        avatar: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(this.userName) + '&background=6366f1&color=fff',
+                    },
+                };
+                this.realtimeMessages.push(tempMsg);
+                this.scrollToBottom();
+
+                // Save what we're sending so we can restore on error
+                const savedBody            = this.body;
+                const savedAttachmentUrl   = this.attachmentUrl;
+                const savedAttachmentType  = this.attachmentType;
+                const savedAttachmentName  = this.attachmentName;
+                const savedAttachmentPreview = this.attachmentPreview;
+
+                // Clear input immediately (optimistic)
+                this.body = '';
+                this.clearAttachment();
+                this.$nextTick(() => {
+                    const ta = this.$el.querySelector('textarea');
+                    if (ta) ta.style.height = 'auto';
+                });
+
+                this.sending   = true;
                 this.sendError = null;
                 this.stopTyping();
 
                 try {
-                    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-                    if (!csrfMeta) throw new Error('CSRF token meta tag missing — try refreshing the page.');
-
                     const res = await fetch('/channels/' + this.channelId + '/messages', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfMeta.content,
-                            'Accept': 'application/json',
+                            'Content-Type':  'application/json',
+                            'X-CSRF-TOKEN':  csrfMeta.content,
+                            'Accept':        'application/json',
                         },
                         body: JSON.stringify({
-                            body:            this.body.trim() || null,
-                            attachment_url:  this.attachmentUrl,
-                            attachment_type: this.attachmentType,
-                            attachment_name: this.attachmentName,
+                            body:            bodyText || null,
+                            attachment_url:  savedAttachmentUrl,
+                            attachment_type: savedAttachmentType,
+                            attachment_name: savedAttachmentName,
                         }),
                     });
 
                     if (res.status === 419) {
+                        this.realtimeMessages = this.realtimeMessages.filter(m => m.id !== tempId);
+                        this.body = savedBody;
+                        this.attachmentUrl = savedAttachmentUrl; this.attachmentType = savedAttachmentType;
+                        this.attachmentName = savedAttachmentName; this.attachmentPreview = savedAttachmentPreview;
                         this.sendError = 'Session expired — please refresh the page and try again.';
                         return;
                     }
 
                     if (!res.ok) {
+                        this.realtimeMessages = this.realtimeMessages.filter(m => m.id !== tempId);
+                        this.body = savedBody;
+                        this.attachmentUrl = savedAttachmentUrl; this.attachmentType = savedAttachmentType;
+                        this.attachmentName = savedAttachmentName; this.attachmentPreview = savedAttachmentPreview;
                         const errData = await res.json().catch(() => ({}));
                         this.sendError = errData.message || ('Server error (' + res.status + ') — please try again.');
                         return;
                     }
 
+                    // Success — replace temp message with confirmed one
                     const data = await res.json();
-                    // Add own message immediately (others get it via broadcast)
-                    const msg = data.message;
-                    msg.user.avatar = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(msg.user.name) + '&background=6366f1&color=fff';
-                    this.realtimeMessages.push(msg);
-                    this.body = '';
-                    this.clearAttachment();
-                    this.$nextTick(() => {
-                        const ta = this.$el.querySelector('textarea');
-                        if (ta) ta.style.height = 'auto';
-                    });
-                    this.scrollToBottom();
+                    const real = data.message;
+                    real.user.avatar = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(real.user.name) + '&background=6366f1&color=fff';
+                    const idx = this.realtimeMessages.findIndex(m => m.id === tempId);
+                    if (idx !== -1) this.realtimeMessages[idx] = real;
+
                 } catch (err) {
+                    this.realtimeMessages = this.realtimeMessages.filter(m => m.id !== tempId);
+                    this.body = savedBody;
+                    this.attachmentUrl = savedAttachmentUrl; this.attachmentType = savedAttachmentType;
+                    this.attachmentName = savedAttachmentName; this.attachmentPreview = savedAttachmentPreview;
                     this.sendError = err.message || 'Failed to send message — please try again.';
                 } finally {
                     this.sending = false;

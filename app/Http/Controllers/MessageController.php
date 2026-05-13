@@ -38,8 +38,12 @@ class MessageController extends Controller
         // Update sender's last_read_at
         $channel->members()->updateExistingPivot(Auth::id(), ['last_read_at' => now()]);
 
-        // Broadcast to all channel members in real time
-        broadcast(new MessageSent($message))->toOthers();
+        // Broadcast to all channel members in real time (non-fatal if Reverb is unavailable)
+        try {
+            broadcast(new MessageSent($message))->toOthers();
+        } catch (\Throwable $e) {
+            \Log::warning('Broadcast failed: ' . $e->getMessage());
+        }
 
         if ($request->expectsJson()) {
             return response()->json(['message' => $message->load('user')]);

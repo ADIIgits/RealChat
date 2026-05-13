@@ -1,70 +1,0 @@
-mysqld is alive
-mysqld is alive
-
- INFO Nothing to migrate. 
-
-Already seeded
-
- INFO Configuration cache cleared successfully. 
-
-
- INFO Compiled views cleared successfully. 
-
-Reverb started (PID 3721)
-Building frontend assets...
-
-> build
-> vite build
-
-[1G[0K
-   RuntimeException 
-
-  Failed to listen on "tcp://0.0.0.0:8080": Address already in use (EADDRINUSE)
-
-  at vendor/react/socket/src/TcpServer.php:188
-    [90m184[0m[90m▕ [0m[90;3m                // @link https://3v4l.org/3qOBl[0m
-    [90m185[0m[90m▕ [0m[90;3m                [0m[39;1m$errno [0m[35;1m= [0m[39;1mSocketServer[0m[35;1m::[0m[39;1merrno[0m[35;1m([0m[39;1m$errstr[0m[35;1m);[0m
-    [90m186[0m[90m▕ [0m[35;1m            }[0m
-    [90m187[0m[90m▕ [0m
-[31;1m  ➜ [0m[3;1m188[0m[90m▕ [0m[35;1m            throw new \RuntimeException([0m
-    [90m189[0m[90m▕ [0m[35;1m                [0m[37m'Failed to listen on "' [0m[35;1m. [0m[39;1m$uri [0m[35;1m. [0m[37m'": ' [0m[35;1m. [0m[39;1m$errstr [0m[35;1m. [0m[39;1mSocketServer[0m[35;1m::[0m[39;1merrconst[0m[35;1m([0m[39;1m$errno[0m[35;1m),[0m
-    [90m190[0m[90m▕ [0m[35;1m                [0m[39;1m$errno[0m
-    [90m191[0m[90m▕ [0m[39;1m            [0m[35;1m);[0m
-    [90m192[0m[90m▕ [0m[35;1m        }[0m
-
-      [2m+16 vendor frames [22m
-
-  17  artisan:16
-      Illuminate\Foundation\Application::handleCommand(Object(Symfony\Component\Console\Input\ArgvInput))
-
-[36mvite v8.0.12 [32mbuilding client environment for production...[36m[39m
-[2Ktransforming (8) [2mnode_modules/axios/index.js[0m[2K[32m✓[39m 59 modules transformed.
-[2Krendering chunks (1)...[2Krendering chunks (2)...[2Krendering chunks (3)...[2Krendering chunks (4)...[2Kcomputing gzip size...
-[2K[2mpublic/build/[0m[32mmanifest.json             [39m[2m[1m  0.67 kB[0m[0m[2m │ gzip:  0.23 kB[0m
-[2mpublic/build/[0m[2massets/[0m[35mapp-bd2y4h22.css   [39m[2m[1m105.38 kB[0m[0m[2m │ gzip: 19.54 kB[0m
-[2mpublic/build/[0m[2massets/[0m[36mchunk-Dk7t3yRR.js  [39m[2m[1m  0.69 kB[0m[0m[2m │ gzip:  0.42 kB[0m
-[2mpublic/build/[0m[2massets/[0m[36mecho-Dl_4Qk9k.js   [39m[2m[1m 72.80 kB[0m[0m[2m │ gzip: 20.67 kB[0m
-[2mpublic/build/[0m[2massets/[0m[36mapp-DalZ5Igz.js    [39m[2m[1m 86.38 kB[0m[0m[2m │ gzip: 31.51 kB[0m
-
-[32m✓ built in 1.81s[39m
-[1G[0K⠙[1G[0KLaravel started (PID 3819)
-node:events:502
-      throw er; // Unhandled 'error' event
-      ^
-
-Error: listen EADDRINUSE: address already in use 0.0.0.0:5000
-[90m    at Server.setupListenHandle [as _listen2] (node:net:1908:16)[39m
-[90m    at listenInCluster (node:net:1965:12)[39m
-[90m    at doListen (node:net:2139:7)[39m
-[90m    at process.processTicksAndRejections (node:internal/process/task_queues:83:21)[39m
-Emitted 'error' event on Server instance at:
-[90m    at emitErrorNT (node:net:1944:8)[39m
-[90m    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)[39m {
-  code: [32m'EADDRINUSE'[39m,
-  errno: [33m-98[39m,
-  syscall: [32m'listen'[39m,
-  address: [32m'0.0.0.0'[39m,
-  port: [33m5000[39m
-}
-
-Node.js v20.20.0

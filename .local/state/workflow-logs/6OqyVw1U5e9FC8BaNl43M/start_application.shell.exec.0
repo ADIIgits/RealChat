@@ -1,0 +1,68 @@
+Removing stale MySQL socket...
+Starting MySQL...
+mysqld will log errors to /home/runner/.mysql/logs/error.log
+mysqld is running as pid 2476
+mysqld is alive
+MySQL ready!
+
+ INFO Preparing database. 
+
+ Creating migration table .. 11.56ms DONE
+
+ INFO Running migrations. 
+
+ 0001_01_01_000000_create_users_table .. 71.50ms DONE
+ 0001_01_01_000001_create_cache_table .. 46.05ms DONE
+ 0001_01_01_000002_create_jobs_table .. 19.12ms DONE
+ 2026_05_11_190001_create_channels_table .. 16.82ms DONE
+ 2026_05_11_190002_create_channel_members_table .. 32.67ms DONE
+ 2026_05_11_190003_create_messages_table .. 30.21ms DONE
+ 2026_05_11_190004_create_attachments_table .. 14.45ms DONE
+
+Seeded
+
+ INFO Configuration cache cleared successfully. 
+
+
+ INFO Compiled views cleared successfully. 
+
+Reverb started (PID 2560)
+Building frontend assets...
+
+> build
+> vite build
+
+[1G[0K
+ INFO Starting server on 0.0.0.0:8080 (localhost). 
+
+[36mvite v8.0.12 [32mbuilding client environment for production...[36m[39m
+[2Ktransforming (9) [2mnode_modules/axios/lib/axios.js[0m[2K[32m✓[39m 59 modules transformed.
+[2Krendering chunks (1)...[2Krendering chunks (2)...[2Krendering chunks (3)...[2Krendering chunks (4)...[2Kcomputing gzip size...
+[2K[2mpublic/build/[0m[32mmanifest.json             [39m[2m[1m  0.67 kB[0m[0m[2m │ gzip:  0.23 kB[0m
+[2mpublic/build/[0m[2massets/[0m[35mapp-bd2y4h22.css   [39m[2m[1m105.38 kB[0m[0m[2m │ gzip: 19.54 kB[0m
+[2mpublic/build/[0m[2massets/[0m[36mchunk-Dk7t3yRR.js  [39m[2m[1m  0.69 kB[0m[0m[2m │ gzip:  0.42 kB[0m
+[2mpublic/build/[0m[2massets/[0m[36mecho-Dl_4Qk9k.js   [39m[2m[1m 72.80 kB[0m[0m[2m │ gzip: 20.67 kB[0m
+[2mpublic/build/[0m[2massets/[0m[36mapp-DalZ5Igz.js    [39m[2m[1m 86.38 kB[0m[0m[2m │ gzip: 31.51 kB[0m
+
+[32m✓ built in 1.38s[39m
+[1G[0K⠙[1G[0KLaravel started (PID 2605)
+[proxy] listening on :5000
+
+ INFO Server running on [http://127.0.0.1:4000]. 
+
+ Press Ctrl+C to stop the server
+
+ 2026-05-11 19:18:39 / .. ~ 0.09ms
+ 2026-05-11 19:18:40 / .. ~ 0.08ms
+ 2026-05-11 19:18:40 /login .. ~ 0.03ms
+ 2026-05-11 19:18:44 /build/assets/app-bd2y4h22.css .. ~ 0.12ms
+ 2026-05-11 19:18:44 /build/assets/app-DalZ5Igz.js .. ~ 0.23ms
+ 2026-05-11 19:18:44 /build/assets/chunk-Dk7t3yRR.js .. ~ 0.30ms
+ 2026-05-11 19:18:44 /favicon.ico .. ~ 0.02ms
+ 2026-05-11 19:18:59 /login .. ~ 0.14ms
+ 2026-05-11 19:18:59 /build/assets/app-bd2y4h22.css .. ~ 0.04ms
+ 2026-05-11 19:18:59 /build/assets/app-DalZ5Igz.js .. ~ 0.11ms
+ 2026-05-11 19:18:59 /build/assets/chunk-Dk7t3yRR.js .. ~ 0.17ms
+ 2026-05-11 19:18:59 /favicon.ico .. ~ 0.02ms
+ 2026-05-11 19:28:59 / .. ~ 0.10ms
+ 2026-05-11 19:30:21 / .. ~ 0.08ms

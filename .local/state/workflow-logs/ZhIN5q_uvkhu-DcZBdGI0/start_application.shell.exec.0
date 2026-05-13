@@ -1,0 +1,22 @@
+2026-05-11T19:10:27.410564Z 0 [System] [MY-013169] [Server] /nix/store/s2lbn1axpc79kwnc829k5idkwabfq459-mysql-8.0.42/bin/mysqld (mysqld 8.0.42) initializing of server in progress as process 276
+2026-05-11T19:10:27.419398Z 1 [System] [MY-013576] [InnoDB] InnoDB initialization has started.
+2026-05-11T19:10:27.574129Z 1 [System] [MY-013577] [InnoDB] InnoDB initialization has ended.
+2026-05-11T19:10:28.093257Z 6 [Warning] [MY-010453] [Server] root@localhost is created with an empty password ! Please consider switching off the --initialize-insecure option.
+Starting MySQL...
+mysqld will log errors to /home/runner/.mysql/logs/error.log
+mysqld is running as pid 323
+MySQL ready!
+
+Warning: require(/home/runner/workspace/vendor/autoload.php): Failed to open stream: No such file or directory in /home/runner/workspace/artisan on line 10
+
+Fatal error: Uncaught Error: Failed opening required '/home/runner/workspace/vendor/autoload.php' (include_path='.:/nix/store/nn6fbrcavsj77zg7xxx3r6gnpd50qi5s-php-8.2.23/lib/php') in /home/runner/workspace/artisan:10
+Stack trace:
+#0 {main}
+  thrown in /home/runner/workspace/artisan on line 10
+
+Warning: require(/home/runner/workspace/vendor/autoload.php): Failed to open stream: No such file or directory in /home/runner/workspace/artisan on line 10
+
+Fatal error: Uncaught Error: Failed opening required '/home/runner/workspace/vendor/autoload.php' (include_path='.:/nix/store/nn6fbrcavsj77zg7xxx3r6gnpd50qi5s-php-8.2.23/lib/php') in /home/runner/workspace/artisan:10
+Stack trace:
+#0 {main}
+  thrown in /home/runner/workspace/artisan on line 10

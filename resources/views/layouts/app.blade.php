@@ -11,12 +11,12 @@
         window.reverbConfig = {
             key:      '{{ config("broadcasting.connections.reverb.key") }}',
             host:     window.location.hostname,
-            port:     443,
-            wssPort:  443,
-            forceTLS: (window.location.protocol === 'https:'),
+            port:     {{ env('REVERB_PORT', 8080) }},
+            wssPort:  {{ env('REVERB_PORT', 8080) }},
+            forceTLS: {{ env('REVERB_SCHEME', 'http') === 'https' ? 'true' : 'false' }},
         };
     </script>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/echo.js'])
 </head>
 <body class="h-full bg-gray-900 text-gray-100 antialiased">
     @isset($header)

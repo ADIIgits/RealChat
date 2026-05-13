@@ -2,8 +2,6 @@ import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import tailwindcss from '@tailwindcss/vite';
 
-const replitDomain = process.env.REPLIT_DEV_DOMAIN || 'localhost';
-
 export default defineConfig({
     plugins: [
         laravel({
@@ -16,12 +14,6 @@ export default defineConfig({
         host: '0.0.0.0',
         port: 5173,
         strictPort: true,
-        allowedHosts: true,
-        hmr: {
-            host: replitDomain,
-            clientPort: 443,
-            protocol: 'wss',
-        },
         watch: {
             ignored: ['**/storage/framework/views/**', '**/vendor/**', '**/node_modules/**'],
         },
